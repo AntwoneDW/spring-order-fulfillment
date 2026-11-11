@@ -2,6 +2,7 @@ package com.antwonesoftware.springorderfulfillment.service;
 
 import com.antwonesoftware.springorderfulfillment.dto.CreateOrderRequest;
 import com.antwonesoftware.springorderfulfillment.dto.OrderResponse;
+import com.antwonesoftware.springorderfulfillment.exception.OrderNotFoundException;
 import com.antwonesoftware.springorderfulfillment.model.Order;
 import com.antwonesoftware.springorderfulfillment.repository.OrderRepository;
 import org.springframework.stereotype.Service;
@@ -41,11 +42,9 @@ public class OrderService {
 
     @Transactional(readOnly = true)
     public OrderResponse getOrder(Long id) {
+
         Order order = orderRepository.findById(id)
-                .orElseThrow(() ->
-                        new IllegalArgumentException(
-                                "Order not found: " + id
-                        ));
+                .orElseThrow(() -> new OrderNotFoundException(id));
 
         return toResponse(order);
     }
