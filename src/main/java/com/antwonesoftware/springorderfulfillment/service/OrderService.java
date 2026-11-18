@@ -3,20 +3,27 @@ package com.antwonesoftware.springorderfulfillment.service;
 import com.antwonesoftware.springorderfulfillment.dto.CreateOrderRequest;
 import com.antwonesoftware.springorderfulfillment.dto.OrderResponse;
 import com.antwonesoftware.springorderfulfillment.exception.OrderNotFoundException;
+import com.antwonesoftware.springorderfulfillment.messaging.events.OrderConfirmedEvent;
 import com.antwonesoftware.springorderfulfillment.model.Order;
 import com.antwonesoftware.springorderfulfillment.repository.OrderRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.List;
-
+import org.springframework.context.ApplicationEventPublisher;
 @Service
 public class OrderService {
 
     private final OrderRepository orderRepository;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
-    public OrderService(OrderRepository orderRepository) {
+    public OrderService(
+            OrderRepository orderRepository,
+            ApplicationEventPublisher applicationEventPublisher
+    ) {
         this.orderRepository = orderRepository;
+        this.applicationEventPublisher = applicationEventPublisher;
     }
 
     @Transactional
@@ -45,6 +52,28 @@ public class OrderService {
 
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new OrderNotFoundException(id));
+
+        return toResponse(order);
+    }
+
+    @Transactional
+    public OrderResponse confirmOrder(Long id) {
+
+        Order order = orderRepository.findById(id)
+                .orElseThrow(() ->
+                        new OrderNotFoundException(id)
+                );
+
+        order.confirm();
+
+        applicationEventPublisher.publishEvent(
+                new OrderConfirmedEvent(
+                        order.getId(),
+                        order.getCustomerId(),
+                        order.getTotalAmount(),
+                        Instant.now()
+                )
+        );
 
         return toResponse(order);
     }

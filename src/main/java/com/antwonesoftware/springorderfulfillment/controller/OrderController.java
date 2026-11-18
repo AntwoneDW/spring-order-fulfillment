@@ -5,6 +5,7 @@ import com.antwonesoftware.springorderfulfillment.dto.OrderResponse;
 import com.antwonesoftware.springorderfulfillment.service.OrderService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,6 +26,15 @@ public class OrderController {
             @Valid @RequestBody CreateOrderRequest request) {
 
         return orderService.createOrder(request);
+    }
+
+    @PostMapping("/{id}/confirm")
+    public ResponseEntity<OrderResponse> confirmOrder(
+            @PathVariable Long id
+    ) {
+        return ResponseEntity.ok(
+                orderService.confirmOrder(id)
+        );
     }
 
     @GetMapping("/{id}")

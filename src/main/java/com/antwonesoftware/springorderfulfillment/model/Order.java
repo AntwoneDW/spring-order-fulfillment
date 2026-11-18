@@ -58,7 +58,13 @@ public class Order {
     }
 
     public void confirm() {
-        this.status = OrderStatus.CONFIRMED;
+        if (status != OrderStatus.PENDING) {
+            throw new IllegalStateException(
+                    "Only pending orders can be confirmed"
+            );
+        }
+
+        status = OrderStatus.CONFIRMED;
     }
 
     public void cancel() {
