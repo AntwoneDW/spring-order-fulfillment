@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spring-order-fulfillment
+spec:
+  replicas: 2
+
+  selector:
+    matchLabels:
+      app: spring-order-fulfillment
+
+  template:
+    metadata:
+      labels:
+        app: spring-order-fulfillment
+
+    spec:
+      containers:
+        - name: spring-order-fulfillment
+          image: spring-order-fulfillment:latest
+
+          ports:
+            - containerPort: 8080
+
+          env:
+            - name: DB_URL
+              value: jdbc:postgresql://postgres:5432/orderdb
+
+            - name: DB_USERNAME
+              value: orderapp
+
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: order-fulfillment-secrets
+                  key: db-password
+
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              value: kafka:19092
+
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 10
+
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8080
+            initialDelaySeconds: 20
+            periodSeconds: 10
