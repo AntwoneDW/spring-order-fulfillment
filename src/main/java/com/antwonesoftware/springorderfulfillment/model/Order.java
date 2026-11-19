@@ -1,5 +1,6 @@
 package com.antwonesoftware.springorderfulfillment.model;
 
+import com.antwonesoftware.springorderfulfillment.exception.InvalidOrderStateException;
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;
@@ -59,11 +60,10 @@ public class Order {
 
     public void confirm() {
         if (status != OrderStatus.PENDING) {
-            throw new IllegalStateException(
-                    "Only pending orders can be confirmed"
+            throw new InvalidOrderStateException(
+                    "Only pending orders can be confirmed. Current status: " + status
             );
         }
-
         status = OrderStatus.CONFIRMED;
     }
 
