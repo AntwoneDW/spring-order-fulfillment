@@ -2,7 +2,9 @@ package com.antwonesoftware.springorderfulfillment.integration;
 
 import com.antwonesoftware.springorderfulfillment.dto.OrderResponse;
 import com.antwonesoftware.springorderfulfillment.integration.dto.ExternalOrderRequest;
+import com.antwonesoftware.springorderfulfillment.integration.dto.OrderIngestionResult;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -27,8 +29,15 @@ public class OrderIntegrationController {
     public ResponseEntity<OrderResponse> ingestOrder(
             @Valid @RequestBody ExternalOrderRequest request) {
 
-        OrderResponse response = integrationService.ingest(request);
+        OrderIngestionResult result =
+                integrationService.ingest(request);
 
-        return ResponseEntity.status(201).body(response);
+        if (result.created()) {
+            return ResponseEntity
+                    .status(HttpStatus.CREATED)
+                    .body(result.order());
+        }
+
+        return ResponseEntity.ok(result.order());
     }
 }
